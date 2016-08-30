@@ -10,3 +10,12 @@ http://docs.ggplot2.org/0.9.2.1/labs.html
 http://www.cookbook-r.com/Graphs/Legends_(ggplot2)/
 http://docs.ggplot2.org/current/geom_smooth.html
 https://www.nceas.ucsb.edu/~frazier/RSpatialGuides/colorPaletteCheatsheet.pdf
+http://www.statmethods.net/advgraphs/axes.html
+http://docs.ggplot2.org/current/geom_abline.html
+http://www.statmethods.net/graphs/scatterplot.html
+http://stackoverflow.com/questions/14490870/how-can-i-change-the-colors-in-a-ggplot2-density-plot
+http://stackoverflow.com/questions/7363813/changing-color-of-density-plots-in-ggplot2
+https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html
+http://stackoverflow.com/questions/8599685/how-to-change-correlation-text-size-in-ggpairs
+https://briatte.github.io/ggcorr/
+http://google.github.io/styleguide/Rguide.xml#linelength
