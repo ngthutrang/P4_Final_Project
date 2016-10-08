@@ -34,20 +34,7 @@ wine <- read.csv('wineQualityReds.csv')
 grey_pallete <- c("#f7f7f7","#d9d9d9","#bdbdbd","#969696","#636363","#252525") #for quality
 blue_pallete <- c("#eff3ff","#bdd7e7","#6baed6","#2171b5") #for alcohol
 green_pallete <- c("#edf8e9","#c7e9c0","#a1d99b","#74c476","#31a354","#006d2c") #for acid citric
-```
 
-
-```{r echo=FALSE, Univariate_Plots,warning=FALSE}
-
-```
-
-# Univariate Plots Section
-
-In this section, I would explore the distributions of all variables.
-
-Below is a summary of all variables in the dataset.
-
-```{r echo=FALSE,warning=FALSE}
 #create new variables
 wine$quality.factor <- as.factor(wine$quality)
 wine$citric.acid.bracket <- cut(wine$citric.acid,breaks = seq(-0.01,1,0.15))
@@ -59,6 +46,86 @@ ggplot_univ_common <- function(feature, bins){
   ggplot(data = wine, aes_string(x = feature)) + geom_histogram(binwidth = bins)
 }
 
+##bivariate common scatter plotting
+ggplot_bi_common <- function(x_feature, y_feature, x_label, y_label, chart_title){
+  ggplot(aes_string(x=x_feature,y=y_feature), data=wine) + 
+  geom_point(color = "#969696") +
+  geom_smooth(color = "black", se = FALSE, method = "lm")+ 
+  labs(title = chart_title, y = y_label, x = x_label)
+}
+
+ggplot_density_common<- function(x_feature,color_factor,color_palette,
+                                 legend_name,x_label,y_label,chart_title){
+  ggplot(wine, aes_string(x_feature, color = color_factor)) +
+  geom_line(stat="density",size = 1.5)+
+  scale_color_manual(values = color_palette, name = legend_name)+theme_dark()+ 
+  labs(title = chart_title, y = y_label, x = x_label, legend = legend_name)
+}
+
+##multivariate common scatter plotting function
+
+ggplot_point_multi_common <- function(x_feature,y_feature,color_factor,
+                                dot_size,alpha_param,legend_name,x_label,
+                                y_label,chart_title){
+  ggplot(data=wine, aes_string(x=x_feature,y=y_feature,color = color_factor))+
+    geom_point(size=dot_size,alpha = alpha_param) + theme_dark()+
+    labs(title = chart_title, y = y_label, x = x_label, legend = legend_name)
+}
+
+ggplot_jitter_multi_common <- function(x_feature,y_feature,color_factor,
+                                       color_palette,dot_size,alpha_param,
+                                       legend_name,x_label,y_label,chart_title){
+  ggplot(data=wine, aes_string(x=x_feature,y=y_feature,color = color_factor))+
+    geom_jitter(size=dot_size,alpha = alpha_param) + theme_dark()+
+    labs(title = chart_title, y = y_label, x = x_label, legend = legend_name)+
+    scale_color_manual(values = color_palette, name = legend_name)
+}
+
+
+ggplot_density_scatter_combine <- function(x_feature,y_feature,color_factor,
+                                           color_palette,dot_size,
+                                           alpha_param,x_label,y_label,
+                                           chart_title){
+  
+  p <-ggplot_point_multi_common(x_feature,y_feature,color_factor,dot_size,
+                                           alpha_param,"","","","")+
+    scale_color_manual(values = green_pallete, name = "Quality")  +
+    geom_smooth(se = FALSE, method = "lm") +theme_dark()
+  
+  p2<-p+ theme(legend.position="none",axis.title.x=element_blank(),
+             axis.title.y=element_blank())+labs(title = "")
+  
+  p1 <- ggplot_density_common(x_feature,color_factor,color_palette,
+                              "",x_label,y_label, chart_title)+
+    theme(legend.position="none", axis.title.y=element_blank())
+  
+  p3<-ggplot_density_common(y_feature,color_factor,color_palette,
+                              "",y_label,"", "")+
+    theme_dark()+ coord_flip() + theme(legend.position="none",
+                                     axis.title.x=element_blank())
+  
+  legend <- g_legend(p)
+  grid.arrange(arrangeGrob(p1,legend, p2, p3, nrow=2))
+}
+
+g_legend<-function(a.gplot){
+    tmp <- ggplot_gtable(ggplot_build(a.gplot))
+    leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+    legend <- tmp$grobs[[leg]]
+    return(legend)
+}
+
+```
+
+# Univariate Plots Section
+
+In this section, I would explore the distributions of all variables.
+
+Below is a summary of all variables in the dataset.
+
+```{r echo=FALSE,warning=FALSE}
+
+summary(wine)
 ```
 
 Next, I'm going to investigate the distribution of each variable.
@@ -124,7 +191,7 @@ There are a big number of ouliers for chlorides. After limit to 3% and 97% quant
 
 ```{r echo=FALSE,warning=FALSE}
 
-qplot(x=chlorides,data=wine,binwidth=0.01, xlab = "Chlorides", 
+qplot(x=chlorides,data=wine,binwidth=0.01, xlab = "Chlorides, g/dm^3", 
       main = "Chlorides Histogram") + 
   scale_x_continuous(breaks = seq(0,0.6,0.05))
 
@@ -237,6 +304,9 @@ table(wine$alcohol.bracket)
 The majority of the wines have quality 5 and 6 (82% of all samples). 13.6% of all samples have quality 7 and 8.
 
 ```{r echo=FALSE,warning=FALSE}
+
+qplot(x=quality.factor,data=wine,xlab = 'Quality', main = "Quality Histogram")
+
 table(wine$quality.factor)
 
 ```
@@ -333,12 +403,6 @@ Medium negative correlation (>-0.5, <-0.3):
 
 ```{r echo=FALSE,warning=FALSE}
 
-##bivariate common scatter plotting
-ggplot_bi_common <- function(x_feature, y_feature){
-  ggplot(aes_string(x=x_feature,y=y_feature), data=wine) + 
-  geom_point(color = "#969696") +
-  geom_smooth(color = "black", se = FALSE, method = "lm")
-}
 ```
 ####Alcohol vs Quality
 
@@ -346,16 +410,13 @@ As we can see from the box plot, higher quality wines have higher percentage of 
 
 ```{r echo=FALSE,warning=FALSE}
 qplot(x=quality.factor,y=alcohol,data=wine,geom='boxplot',xlab = "Quality", 
-      ylab = "Alcohol", main = "Boxplot for Quality and Alcohol")
+      ylab = "Alcohol, percent by volume", main = "Boxplot for Quality and Alcohol")
 
 cor.test(wine$quality,wine$alcohol)
 
-ggplot(wine, aes(alcohol, color = quality.factor, fill = quality.factor)) +
-  geom_density(alpha = 0.8,position = "stack")+
-  scale_fill_manual(values = green_pallete, name = "Quality")+
-  scale_color_manual(values = green_pallete, name = "Quality")+theme_gray()+ 
-  labs(title = "Density graph of Alcohol broken down by Quality", 
-    y = "Density", x = "Alcohol, percent by volume", legend = "Quality")
+ggplot_density_common("alcohol","quality.factor",green_pallete,"Quality",
+                      "Alcohol, percent by volume","Density, g/dm3",
+                      "Alcohol Density Graph, by Quality")
 
 tapply(wine$alcohol,wine$quality.factor,summary)
 
@@ -367,18 +428,14 @@ As we can see from the charts, wines with lower amount of volatile acidity seem 
 
 ```{r echo=FALSE,warning=FALSE}
 qplot(x=quality.factor,y=volatile.acidity,data=wine,geom='boxplot',
-      xlab = "Quality", ylab = "Volatile Acidity",
+      xlab = "Quality", ylab = "Volatile Acidity , g/dm^3",
       main = "Box Plot for Volatile Acidity and Quality")
 
 cor.test(wine$quality,wine$volatile.acidity)
 
-ggplot(wine, aes(volatile.acidity, color = quality.factor, 
-                 fill = quality.factor)) +
-  geom_density(alpha = 0.8,position = "stack")+
-  scale_fill_manual(values = green_pallete, name = "Quality")+
-  scale_color_manual(values = green_pallete, name = "Quality")+theme_gray()+ 
-  labs(title = "Density graph of Volatile Acidity broken down by Quality", 
-    y = "Density", x = "Volatile Acidity, g/dm^3", legend = "Quality")
+ggplot_density_common("volatile.acidity","quality.factor",green_pallete,"Quality",
+                      "Volatile Acidity , g/dm^3","Density, g/dm3",
+                      "Volatile Acidity Density Graph, by Quality")
 
 tapply(wine$volatile.acidity,wine$quality.factor,summary)
 
@@ -392,12 +449,10 @@ Fixed Acidity and Citric Acid has strong positive correlation (0.67 from Pearson
 
 ```{r echo=FALSE,warning=FALSE}
 
-ggplot_bi_common("fixed.acidity","citric.acid") +
-  ggtitle('Fixed Acidity vs Citric Acid scatter plot')+
+ggplot_bi_common("fixed.acidity","citric.acid","Fixed Acidity ,g/dm^3","Citric Acid, g/dm^3",
+                 'Fixed Acidity vs Citric Acid scatter plot') +
   xlim(quantile(wine$fixed.acidity,0.01), quantile(wine$fixed.acidity,0.99)) +
-  ylim(quantile(wine$citric.acid,0.01), quantile(wine$citric.acid, 0.99)) +
-  labs(x="Fixed Acidity", y = "Citric Acid")
-
+  ylim(quantile(wine$citric.acid,0.01), quantile(wine$citric.acid, 0.99))
 ```
 
 #### Fixed Acidity vs Density
@@ -406,9 +461,8 @@ Fixed Acidity and pH has strong positive correlation (0.67 from Pearson's test)
 
 ```{r echo=FALSE,warning=FALSE}
 
-ggplot_bi_common("fixed.acidity","density") +
-  ggtitle('Fixed Acidity vs Density scatter plot') +
-  labs(x="Fixed Acidity",y="Density")
+ggplot_bi_common("fixed.acidity","density","Fixed Acidity ,g/dm^3","Density, g/dm3",
+                 "Fixed Acidity vs Density scatter plot")
 
 ```
 
@@ -418,9 +472,8 @@ Fixed Acidity and pH has strong negative correlation (-0.68 from Pearson's test)
 
 ```{r echo=FALSE,warning=FALSE}
 
-ggplot_bi_common("fixed.acidity","pH") +
-  ggtitle('Fixed Acidity vs pH scatter plot') +
-  labs(x = "Fixed Acidity" , y = "pH")
+ggplot_bi_common("fixed.acidity","pH","Fixed Acidity ,g/dm^3" ,"pH",
+                 'Fixed Acidity vs pH scatter plot')
 
 ```
 
@@ -430,13 +483,13 @@ Free Sulfur Dioxide and Total Sulfur Dioxide unsurprisingly has high positive co
 
 ```{r echo=FALSE,warning=FALSE}
 
-ggplot_bi_common("free.sulfur.dioxide","total.sulfur.dioxide")+ 
-  ggtitle('Free Sulfur Dioxide vs Total Sulfur Dioxide scatter plot')+
+ggplot_bi_common("free.sulfur.dioxide","total.sulfur.dioxide",
+                 "Free Sulfur Dioxide, mg / dm^3","Total Sulfur Dioxide, mg / dm^3",
+                 'Free Sulfur Dioxide vs Total Sulfur Dioxide scatter plot')+
   xlim(quantile(wine$free.sulfur.dioxide,0.01),
        quantile(wine$free.sulfur.dioxide,0.99)) +
   ylim(quantile(wine$total.sulfur.dioxide,0.01),
-       quantile(wine$total.sulfur.dioxide, 0.99)) +
-  labs(x = "Free Sulfur Dioxide", y = "Total Sulfur Dioxide")
+       quantile(wine$total.sulfur.dioxide, 0.99))
 
 ```
 
@@ -446,9 +499,9 @@ Citric Acid and Volatile Acidity are 0.55 correlated (from Pearson's test).
 
 ```{r echo=FALSE,warning=FALSE}
 
-ggplot_bi_common("citric.acid","volatile.acidity")+ 
-  ggtitle('Citric Acid vs Volatile Acidity scatter plot') +
-  labs(x = "Citric Acid" , y = "Volatile Acidity")
+ggplot_bi_common("citric.acid","volatile.acidity","Citric Acid, g/dm^3" ,
+                 "Volatile Acidity , g/dm^3",
+                 'Citric Acid vs Volatile Acidity scatter plot')
 
 ```
 
@@ -459,9 +512,8 @@ Citric Acid and pH has 0.54 Pearson's correlation.
 ```{r echo=FALSE,warning=FALSE}
 
 
-ggplot_bi_common("citric.acid","pH")+ 
-  ggtitle('Citric Acid vs pH scatter, geom_point') +
-  labs(x = "Citric Acid" , y = "pH")
+ggplot_bi_common("citric.acid","pH","Citric Acid, g/dm^3" ,"pH",
+                 'Citric Acid vs pH scatter plot')
 
 
 ```
@@ -509,105 +561,103 @@ The strongest relationship is between fixed acidity and pH (0.68). This makes se
 
 # Multivariate Plots Section
 
-```{r echo=FALSE,warning=FALSE}
-##multivariate common scatter plotting function
 
-ggplot_point_multi_common <- function(x_feature,y_feature,color_factor,
-                                dot_size,alpha_param){
-  ggplot(data=wine, aes_string(x=x_feature,y=y_feature,color = color_factor))+
-    geom_point(size=dot_size,alpha = alpha_param) + theme_grey()
-}
-
-ggplot_jitter_multi_common <- function(x_feature,y_feature,color_factor,
-                                dot_size,alpha_param){
-  ggplot(data=wine, aes_string(x=x_feature,y=y_feature,color = color_factor))+
-    geom_jitter(size=dot_size,alpha = alpha_param) + theme_grey()
-}
-
-```
 ####Citric Acid, Fixed Acidity and Quality
 
-This is a scatter plot of fixed acidity and citric acid with the colors of the points are by quality points.It seems like higher quality wines have higher fixed acidity and higher citric acid.
+This is a combined plot of a scatter plot and two density plots for fixed acidity and citric acid with the colors of the points are by quality points.It seems like higher quality wines have higher fixed acidity and higher citric acid.
 
 ```{r echo=FALSE, Multivariate_Plots,warning=FALSE}
 
-ggplot_point_multi_common("citric.acid","fixed.acidity","quality.factor",2,0.5)+
-  scale_color_manual(values = green_pallete, name = "Quality") +
-  labs(x="Citric Acid", y="Fixed Acidity", 
-       title = "Citric Acid vs Fixed Acidity, colored by Quality")
+ggplot_density_scatter_combine("citric.acid","fixed.acidity","quality.factor",
+                               green_pallete,2, 0.5,"Citric Acid, g/dm^3",
+                               "Fixed Acidity ,g/dm^3",
+                               "Citric Acid vs Fixed Acidity, by Quality")
+
 ```
+
+
 
 ####Citric Acid, Volatile Acidity and Quality
 
-I have another scatter plot of volatile acidity and citric acid with the colors of the points are by quality points. In this plot, the higher quality wines seem to concentrate where citric acid is high and volatile acidity is low.
+I have another combined plot of a scatter plot and two density plots for volatile acidity and citric acid with the colors of the points are by quality points. In this plot, the higher quality wines seem to concentrate where citric acid is high and volatile acidity is low.
 
 ```{r echo=FALSE,warning=FALSE}
-ggplot_point_multi_common("citric.acid","volatile.acidity",
-                          "quality.factor",2,0.5)+
-  scale_color_manual(values = green_pallete, name = "Quality") +
-  labs(x="Citric Acid", y="Volatile Acidity",
-       title = "Citric Acid vs Volatile Acidity, colored by Quality")
 
-
+ggplot_density_scatter_combine("citric.acid","volatile.acidity","quality.factor",
+                               green_pallete,2, 0.5,"Citric Acid, g/dm^3",
+                               "Volatile Acidity , g/dm^3",
+                               "Citric Acid vs Volatile Acidity, by Quality")
 ```
+
+
 
 ####Citric Acid, pH and Quality
 
 In this plot, higher quality wines have higher citric acid and lower pH.
 
 ```{r echo=FALSE,warning=FALSE}
-ggplot_point_multi_common("citric.acid","pH","quality.factor",2,0.5)+
-  scale_color_manual(values = green_pallete, name = "Quality") +
-  labs(x="Citric Acid", y="pH", title = "Citric Acid vs pH, colored by Quality")
+
+ggplot_density_scatter_combine("citric.acid","pH","quality.factor",
+                               green_pallete,2,0.5,"Citric Acid, g/dm^3","pH",
+                               "Citric Acid vs pH, by Quality")
 
 ```
+
+
 
 ####Citric Acid, Density and Quality
 
-This plot doesn't seem to show any trend to conclude anything about the relationship between these three variables.
+This combined plot shows the relationship between citric acid and quality. Density doesn't seem to interact with quality here.
 
 ```{r echo=FALSE,warning=FALSE}
-ggplot_point_multi_common("citric.acid","density","quality.factor",2,0.5)+
-  scale_color_manual(values = green_pallete, name = "Quality") +
-  labs(x="Citric Acid", y="Density",
-       title = "Citric Acid vs Density, colored by Quality") + theme_grey()
+
+ggplot_density_scatter_combine("citric.acid","density","quality.factor",
+                               green_pallete,2,0.5,"Citric Acid, g/dm^3","Density, g/dm3",
+                               "Citric Acid vs Density, by Quality")
 
 ```
+
+
 
 ####Citric Acid, Sulphates and Quality
 
-The same with the plot below, seems like high quality wines are scattered all over the plot.
+With the density plot of sulphates factored by quality, we can see that wines with higher sulphates and higher citric acid have better quality.
 
 ```{r echo=FALSE,warning=FALSE}
-ggplot_point_multi_common("citric.acid","sulphates","quality.factor",2,0.5)+
-  scale_color_manual(values = green_pallete, name = "Quality") +
-  labs(x="Citric Acid", y="Sulphates",
-       title = "Citric Acid vs Sulphates, colored by Quality")
 
+ggplot_density_scatter_combine("citric.acid","sulphates","quality.factor",
+                               green_pallete,2,0.5,"Citric Acid, g/dm^3","Sulphates, g /dm^3",
+                               "Citric Acid vs Sulphates, by Quality")
 ```
+
+
 
 ####Density, Alcohol and Quality
 
 It is not very clear; however we can see more wines with high quality on the upper left portion of the plot: higher alcohol percentage and smaller density.
 
 ```{r echo=FALSE,warning=FALSE}
-ggplot_point_multi_common("density","alcohol","quality.factor",2,0.5)+
-  scale_color_manual(values = green_pallete, name = "Quality") +
-  labs(x="Density", y="Alcohol",
-       title = "Density vs Alcohol, colored by Quality")
 
+ggplot_density_scatter_combine("density","alcohol","quality.factor",
+                               green_pallete,2,0.5,"Density, g/dm3","Alcohol, percent by volume",
+                               "Density vs Alcohol, by Quality")
 ```
+
+
 
 ####Volatile Acidity, Quality and Alcohol Brackets
 
 This is a different kind of scatter plot. We have volatile acidity vs quality and the points are colored by alcohol brackets. As we can see, darker colored dots have higher quality and lower volatile acidity.
 
 ```{r echo=FALSE,warning=FALSE}
-ggplot_jitter_multi_common("volatile.acidity","quality","alcohol.bracket",2,1)+
-  scale_color_manual(values = blue_pallete, name = "Alcohol") +
-  labs(x="Volatile Acidity", y="Quality",
-       title = "Volatile Acidity vs Quality, colored by Alcohol Brackets")
+ggplot_jitter_multi_common("volatile.acidity","quality","alcohol.bracket",
+                           blue_pallete,2,1,
+                           "Alcohol, percent by volume","Volatile Acidity , g/dm^3","Quality",
+                           "Volatile Acidity vs Quality, by Alcohol")
+
 ```
+
+
 
 ####Density, Quality and Alcohol Brackets
 
@@ -615,22 +665,23 @@ With the plot below, we can not really see a clear relationship between the thre
 
 ```{r echo=FALSE,warning=FALSE}
 
-ggplot_jitter_multi_common("density","quality","alcohol.bracket",2,1)+
-  scale_color_manual(values = blue_pallete, name = "Alcohol") +
-  labs(x="Density", y="Quality",
-       title = "Density vs Quality, colored by Alcohol Brackets")
+ggplot_jitter_multi_common("density","quality","alcohol.bracket",blue_pallete,
+                           2,1,"Alcohol, percent by volume","Density, g/dm3","Quality",
+                           "Density vs Quality, by Alcohol")
+  
 ```
+
+
 
 ####pH, Quality and Citric Acid Brackets.
 
 This plot has pH vs quality and the points are colored by citric acid brackets. As we can see, there are more darker colored dots at the upper left of the plot which means that higher quality wines tend to have higher citric acid and lower pH.
 
 ```{r echo=FALSE,warning=FALSE}
-ggplot_jitter_multi_common("pH","quality","citric.acid.bracket",2,1)+
-  scale_color_manual(values = green_pallete , name ="Citric Acid") +
-  scale_x_continuous(breaks = seq(0,4,0.1)) +
-  labs(x="pH", y="Quality",
-       title = "pH vs Quality, colored by Citric Acid Brackets")
+ggplot_jitter_multi_common("pH","quality","citric.acid.bracket",green_pallete,2,1,
+                           "Citric Acid, g/dm^3","pH","Quality",
+                           "pH vs Quality, by Citric Acid")+
+  scale_x_continuous(breaks = seq(0,4,0.1))
 
 summary(subset(wine,wine$citric.acid==0))
 
@@ -654,25 +705,21 @@ I think it is interesting that there are a lot of wines which have citric acid a
 
 #### Plot One
 ```{r echo=FALSE, Plot_One,warning=FALSE}
-ggplot(wine, aes(alcohol, color = quality.factor, fill = quality.factor)) +
-  geom_density(alpha = 0.8,position = "stack")+
-  scale_fill_manual(values = green_pallete, name = "Quality")+
-  scale_color_manual(values = green_pallete, name = "Quality")+theme_gray()+ 
-  labs(title = "Density graph of Alcohol broken down by Quality", 
-    y = "Density", x = "Alcohol, percent by volume", legend = "Quality")
+ggplot_density_common("alcohol","quality.factor",green_pallete,"Quality",
+                      "Alcohol, percent by volume","Density, g/dm3","Alcohol, percent by volume")
 ```
 
 #### Description One
 
-This plot shows the density of alcohol percentage by volume and stacked by quality factors. The reason why I chose it was becasue from the chart, we can see cleary the positive correlation between alchol and quality. Most of the higher quality wines are distributed towards higher alcohol direction.
+This plot shows the density of alcohol percentage by volume factored by quality scores. The reason why I chose it was becasue from the chart, we can see cleary the positive correlation between alchol and quality. Most of the higher quality wines are distributed towards higher alcohol direction.
 
 #### Plot Two
 ```{r echo=FALSE, Plot_Two,warning=FALSE}
-ggplot_point_multi_common("citric.acid","volatile.acidity",
-                          "quality.factor",2,0.5)+
-  scale_color_manual(values = green_pallete, name = "Quality") +
-  labs(x="Citric Acid", y="Volatile Acidity",
-       title = "Citric Acid vs Volatile Acidity, colored by Quality")
+
+ggplot_density_scatter_combine("citric.acid","volatile.acidity","quality.factor",
+                               green_pallete,2, 0.5,"Citric Acid, g/dm^3",
+                               "Volatile Acidity , g/dm^3",
+                               "Citric Acid vs Volatile Acidity, by Quality")
 ```
 
 #### Description Two
@@ -681,10 +728,10 @@ I think this plot is good in showing the relationship between Volatile Acidity, 
 
 #### Plot Three
 ```{r echo=FALSE, Plot_Three,warning=FALSE}
-ggplot_jitter_multi_common("volatile.acidity","quality","alcohol.bracket",2,1)+
-  scale_color_manual(values = blue_pallete, name = "Alcohol") +
-  labs(x="Volatile Acidity", y="Quality",
-       title = "Volatile Acidity vs Quality, colored by Alcohol Brackets")
+ggplot_jitter_multi_common("volatile.acidity","quality","alcohol.bracket",
+                           blue_pallete,2,1,
+                           "Alcohol, percent by volume","Volatile Acidity , g/dm^3","Quality",
+                           "Volatile Acidity vs Quality, by Alcohol")
 ```
 
 #### Description Three

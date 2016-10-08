@@ -19,3 +19,8 @@ https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html
 http://stackoverflow.com/questions/8599685/how-to-change-correlation-text-size-in-ggpairs
 https://briatte.github.io/ggcorr/
 http://google.github.io/styleguide/Rguide.xml#linelength
+http://stackoverflow.com/questions/35090883/remove-all-of-x-axis-labels-in-ggplot
+https://www.datacamp.com/community/tutorials/15-questions-about-r-plots#gs.XKOmIco
+http://www.cookbook-r.com/Graphs/Legends_(ggplot2)/
+http://www.sthda.com/english/wiki/ggplot2-rotate-a-graph-reverse-and-flip-the-plot
+http://blog.mckuhn.de/2013/04/2d-plot-with-histograms-for-each.html
